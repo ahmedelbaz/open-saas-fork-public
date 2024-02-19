@@ -12,10 +12,13 @@ import {
   DeleteTask,
   UpdateTask,
   CreateFile,
+  DeleteFile,// Import the DeleteFile type from the appropriate module
 } from '@wasp/actions/types';
 import { fetchStripeCustomer, createStripeCheckoutSession } from './payments/stripeUtils.js';
 import { TierIds } from '@wasp/shared/constants.js';
-import { getUploadFileSignedURLFromS3 } from './file-upload/s3Utils.js';
+import { getUploadFileSignedURLFromS3, deleteFileFromS3 } from './file-upload/s3Utils.js';
+
+
 
 export const stripePayment: StripePayment<string, StripePaymentResult> = async (tier, context) => {
   if (!context.user || !context.user.email) {
@@ -318,6 +321,28 @@ export const createFile: CreateFile<fileArgs, File> = async ({ fileType, name },
       user: { connect: { id: context.user.id } },
     },
   });
+};
+export const deleteFile: DeleteFile = async ({ key }, context) => {
+  if (!context.user) {
+    throw new HttpError(401, "Unauthorized");
+  }
+
+  // Assuming you have a utility function to delete files from S3
+  // and also delete the reference from your database.
+  try {
+    // First, delete the file from S3
+    await deleteFileFromS3({ key });
+
+    // Then, delete the file reference from your database
+    const deletedFile = await context.entities.File.delete({
+      where: { key },
+    });
+
+    // return deletedFile;
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    throw new HttpError(500, "Failed to delete file");
+  }
 };
 
 export const updateCurrentUser: UpdateCurrentUser<Partial<User>, User> = async (user, context) => {

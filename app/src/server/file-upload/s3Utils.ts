@@ -37,3 +37,12 @@ export const getDownloadFileSignedURLFromS3 = ({ key }: { key: string }) => {
   };
   return s3Client.getSignedUrl("getObject", s3Params);
 }
+
+export const deleteFileFromS3 = async ({ key }: { key: string }) => {
+  const params = {
+    Bucket: process.env.AWS_S3_FILES_BUCKET!,
+    Key: key,
+  };
+
+  return s3Client.deleteObject(params).promise();
+};

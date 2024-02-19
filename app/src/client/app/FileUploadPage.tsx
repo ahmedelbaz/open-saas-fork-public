@@ -4,11 +4,13 @@ import { useState, useEffect, FormEvent } from 'react';
 import getAllFilesByUser from '@wasp/queries/getAllFilesByUser';
 import createFile from '@wasp/actions/createFile';
 import getDownloadFileSignedURL from '@wasp/queries/getDownloadFileSignedURL';
+// Assume deleteFile is an action you've defined in your wasp app
+import deleteFile from '@wasp/actions/deleteFile';
 
 export default function FileUploadPage() {
   const [fileToDownload, setFileToDownload] = useState<string>('');
 
-  const { data: files, error: filesError, isLoading: isFilesLoading } = useQuery(getAllFilesByUser);
+  const { data: files, error: filesError, isLoading: isFilesLoading, refetch } = useQuery(getAllFilesByUser);
   const { isLoading: isDownloadUrlLoading, refetch: refetchDownloadUrl } = useQuery(
     getDownloadFileSignedURL,
     { key: fileToDownload },
@@ -34,6 +36,17 @@ export default function FileUploadPage() {
         });
     }
   }, [fileToDownload]);
+
+  const handleDelete = async (fileKey: string) => {
+    try {
+      await deleteFile({ key: fileKey });
+      alert('File deleted successfully');
+      refetch(); // Refresh the list of files after deletion
+    } catch (error) {
+      console.error('Error deleting file', error);
+      alert('Error deleting file. Please try again.');
+    }
+  };
 
   const handleUpload = async (e: FormEvent<HTMLFormElement>) => {
     try {
@@ -114,6 +127,10 @@ export default function FileUploadPage() {
                     >
                       {file.key === fileToDownload && isDownloadUrlLoading ? 'Loading...' : 'Download'}
                     </button>
+                    <button
+                  onClick={() => handleDelete(file.key)}
+                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                >X</button>
                   </div>
                 ))
               ) : (

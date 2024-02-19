@@ -153,7 +153,7 @@ entity File {=psl
   id                        String          @id @default(uuid())
   name                      String
   type                      String
-  key                       String
+  key                       String          @unique
   uploadUrl                 String
   user                      User            @relation(fields: [userId], references: [id])
   userId                    Int
@@ -370,7 +370,10 @@ action createFile {
   fn: import { createFile } from "@server/actions.js",
   entities: [User, File]
 }
-
+action deleteFile {
+  fn: import { deleteFile } from "@server/actions.js",
+  entities: [File]
+}
 
 // 📚 Queries
 
